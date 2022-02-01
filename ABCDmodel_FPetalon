@@ -12,24 +12,13 @@ n_0 = 1;                                            % Refractive Index surroundi
 % FP etalon
 n = 1.444;                                          % Refractive Indext spacer (fused silica)
 L = 102e-6;                                         % Spacer thickness [m]
-R1b=0.99;                                           % Reflectivity first mirror
-R2b=0.99;                                           % Reflectivity second mirror
-R1f = R1b;                                          % Reflection from mirror 1 forward
-R2f = R2b;                                          % Reflection from mirror 2 forward
-A1b = 0;                                            % Losses from mirror 1 back
-A1f = A1b;                                          % Losses from mirror 1 forward
-A2b = 0;                                            % Losses from mirror 2 back
-A2f = A2b;                                          % Losses from mirror 2 forward
+R1=0.99;                                            % Reflectivity first mirror
+R2=0.99;                                            % Reflectivity second mirror
+A1 = 0;                                             % Losses from mirror 1 
+A2 = 0;                                             % Losses from mirror 2 
 phase_R1f = pi;                                     % Phase shifts from mirror 1 forward
-phase_T1f = 0;                                      % Phase shifts through mirror 1 forward
-phase_T1b = 0;                                      % Phase shifts through mirror 1 back
-phase_R1b = 0;                                      % Phase shifts from mirror 1 back
-phase_R2f = 0;                                      % Phase shifts from mirror 2 forward
-phase_T2f = 0;                                      % Phase shifts through mirror 2 forward
-phase_T2b = 0;                                      % Phase shifts through mirror 2 back
-phase_R2b = 0;                                      % Phase shifts from mirror 2 back
 
-% Spatial integration of the field 
+% Spatial sampling of the field 
 nradialpts = 1e3;                                   % num points in discretisation across beam 
 m_max = 2e3;                                        % maximum iterations
 ch_tol = 1e-3;                                      % tolerance to test convergence 
@@ -43,13 +32,10 @@ dr=rad_vec(2)-rad_vec(1);                           % Resolution
 [rad,lambda] = meshgrid(rad_vec,lambda_vec);        % Radius and wavelength matrices
 previous_ITF = ones(size(lambda_vec));              % Set ITF initially to 1
 
-%Amplitude coefficients 
-r1f=sqrt(R1f);                                      % Mirror 1 - Reflection from front
-t1f=sqrt(1-R1b-A1b);                                % Mirror 1 - Transmission forward
-r1b=sqrt(R1b);                                      % Mirror 1 - Reflection from back
-t1b=sqrt(1-R1f-A1f);                                % Mirror 1 - Transmission back
-r2b=sqrt(R2b);                                      % Mirror 2 - Reflection from back
-t2f=sqrt(1-R2b-A2f);                                % Mirror 2 - Transmission forward
+% Mirrors coefficients 
+r1=sqrt(R1);                                        % Mirror 1 - Reflection coefficient
+t1=sqrt(1-R1-A1);                                   % Mirror 1 - Transmission coefficient
+r2=sqrt(R2);                                        % Mirror 2 - Reflection coefficient
 
 % Beam parameters
 z00=pi*n_0*w00^2./lambda;                           % Raleigh range
@@ -60,11 +46,11 @@ kb=2*n_0*pi./lambda;                                % Wavenumber initial medium
 % Incident beam
 Uin=exp(-rad.^2./w00.^2).*exp(-1i*kb.*rad.^2/2./R0);           
 
-% q-parameter of the Gaussian beam
+% q-parameter of the incident Gaussian beam
 q0=1./(-1i*pi*n*w00^2./lambda./(z00.^2));      
 
 % Initial reflection
-Uout=r1b*exp(1i*(phase_R1b)).*Uin;  
+Uout=r1*exp(1i*(phase_R1b)).*Uin;  
 
 % 
 % ABCD matrices
@@ -73,12 +59,12 @@ Uout=r1b*exp(1i*(phase_R1b)).*Uin;
 % Refraction at a planar boundary (M1)
 A=1;                            B=0;	
 C=0;                            D=n_0/n;
-M_refr1=[A B;C D];
+M_refr=[A B;C D];
 
 % Reverse refraction at a planar boundary (M1)
 A=n/n_0;                        B=0;	
 C=0;                            D=1;
-M_refr1_rev=[A B;C D];
+M_refr_rev=[A B;C D];
 
 % Propagation through homogeneous medium
 A=1;                            B=L/n;	
@@ -100,7 +86,7 @@ ch = inf;
 m=1;
 while (m<m_max) && ((m < 100) || (ch > ch_tol))     
           
-    M=M_refr1_rev*M_prop*M_refl2*M_prop*(M_refl1*M_prop*M_refl2*M_prop)^(m-1)*M_refr1;
+    M=M_refr_rev*M_prop*M_refl2*M_prop*(M_refl1*M_prop*M_refl2*M_prop)^(m-1)*M_refr;
         
     % Calculate mth field parameters
     A=M(1,1);       B=M(1,2);   
@@ -114,7 +100,7 @@ while (m<m_max) && ((m < 100) || (ch > ch_tol))
     zm=2*m*L;                                           % Travel path
         
     % Calculate mth U component
-    Um=t1f*exp(1i*phase_T1f)*r2b*exp(1i*phase_R2b)*(r1f*exp(1i*phase_R1f)*r2b*exp(1i*phase_R2b))^(m-1)*t1b*exp(1i*phase_T1b)*...
+    Um=t1*r2*(r1*exp(1i*phase_R1f)*r2)^(m-1)*t1*...
         w00./wm.*exp(-rad.^2./wm.^2).*exp(-1i*k.*zm-1i*k.*rad.^2/2./Rm+1i*atan(n.*pi.*(wm).^2./lambda./Rm)); % mth U component
     
     % Total reflected field complex amplitude
