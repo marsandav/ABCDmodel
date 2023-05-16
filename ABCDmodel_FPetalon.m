@@ -50,7 +50,7 @@ Uin=exp(-rad.^2./w00.^2).*exp(-1i*kb.*rad.^2/2./R0);
 q0=1./(-1i*pi*n*w00^2./lambda./(z00.^2));      
 
 % Initial reflection
-Uout=r1*exp(1i*(phase_R1b)).*Uin;  
+Uout=r1.*Uin;  
 
 % 
 % ABCD matrices
