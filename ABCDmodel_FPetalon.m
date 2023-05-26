@@ -101,7 +101,7 @@ while (m<m_max) && ((m < 100) || (ch > ch_tol))
         
     % Calculate mth U component
     Um=t1*r2*(r1*exp(1i*phase_R1f)*r2)^(m-1)*t1*...
-        w00./wm.*exp(-rad.^2./wm.^2).*exp(-1i*k.*zm-1i*k.*rad.^2/2./Rm+1i*atan(n.*pi.*(wm).^2./lambda./Rm)); % mth U component
+        w00./wm.*exp(-rad.^2./wm.^2).*exp(-1i*k.*zm-1i*k.*rad.^2/2./Rm+1i*atan(zm./z0m); % mth U component
     
     % Total reflected field complex amplitude
     Uout=Uout+Um; 
